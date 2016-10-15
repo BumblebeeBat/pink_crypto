@@ -1,0 +1,12 @@
+{application, pink_hash,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { pink_hash_app, []}},
+  {env, []}
+ ]}.
