@@ -20,10 +20,8 @@ order3([X]) -> [X].
 merge([], X) -> X; %merge pair
 merge(X, []) -> X;
 merge([F1|B], [F2|D]) -> 
-    {P1, _} = F1,
-    {P2, _} = F2,
-    <<A1:96, _/binary>> = P1,
-    <<A2:96, _/binary>> = P2,
+    {<<A1:96, _/binary>>, _} = F1,
+    {<<A2:96, _/binary>>, _} = F2,
     if
 	A1 > A2 -> [F1|merge(B, [F2|D])];
 	A2 > A1 -> [F2|merge([F1|B], D)]
@@ -41,10 +39,6 @@ verify2([], [], _, A, B) when B =< A ->
 verify2([], [], _, A, B) when B > A ->
     true;
 verify2([{Pub, Weight}|T], [{Pub, Signature}|S], Tx, Min, Sum) ->
-    if
-	Signature == 0 -> io:fwrite("zero\n");
-	true -> ok
-    end,
     B = sign:verify_sig(Tx, Signature, Pub),
     W = if
 	    B -> Weight;
@@ -52,7 +46,7 @@ verify2([{Pub, Weight}|T], [{Pub, Signature}|S], Tx, Min, Sum) ->
 	end,
     verify2(T, S, Tx, Min, Sum+W);
 verify2(_,_,_,_,_) ->
-    {error, "signatures element incorrect length"}.
+    {error, "address verify2"}.
 
     
 test() ->

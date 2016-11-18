@@ -1,6 +1,7 @@
 -module(pow).
--export([pow/3,above_min/2,test/0]).
+-export([data/1,pow/3,above_min/2,test/0]).
 -record(pow, {data, difficulty = [0,0], nonce}).
+data(P) -> P#pow.data.
 above_min(P, [Mina,Minb]) ->
     true = check_pow(P),
     [Diffa, Diffb] = P#pow.difficulty,
@@ -15,7 +16,7 @@ check_pow(P) ->
     Data = P#pow.data,
     H1 = hash:doit(Data),
     H2 = hash:doit(<<H1/binary, Diffa:8, Diffb:8, N:80>>),
-    %H2 = pow_hash:doit([H1, Diffa, Diffb, N]),
+    %H2 = hash:doit([H1, Diffa, Diffb, N]),
     [Ia,Ib] = hash2integer(H2),
     if
 	Ia > Diffa -> true;
