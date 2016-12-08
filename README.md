@@ -13,3 +13,9 @@ It includes libraries for:
 * public/private cryptography.
 
 * a library for making multisig addresses, and making multiparty signatures for those addresses.
+
+to install:
+sh install.sh
+
+to try it out:
+sh start.sh
