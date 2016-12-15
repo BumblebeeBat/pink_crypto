@@ -1,5 +1,5 @@
 -module(pow).
--export([data/1,pow/3,above_min/2,recalculate/2,sci2int/1,int2sci/1,test/0]).
+-export([data/1,pow/3,above_min/2,recalculate/3,sci2int/1,int2sci/1,sci2pair/1,pair2sci/1,int2pair/1,pair2int/1,test/0]).
 -record(pow, {data, difficulty = [0,0], nonce}).
 data(P) -> P#pow.data.
 above_min(P, Min) ->
@@ -46,27 +46,42 @@ exponent(A, N) ->
     A*exponent(A, N-1).
 pair2sci([A, B]) ->
     256*A+B.
+
 pair2int([A, B]) ->
-    exponent(2, A) * B.
+    exponent(2, A) * (256+B) div 256.
+int2pair(P) ->
+    A = lg(P) - 1,
+    B = P * 256 div exponent(2, A) - 256,
+    [A, B].
+lg(1) -> 1;
+lg(X) -> 1+lg(X div 2).
+    
+
+% P = (1+B) * (2^A)/256
+% 256 * P = 
+    %exponent(2, A) * (B+1).
 sci2pair(I) ->
     A = I div 256,
     B = I rem 256,
     [A, B].
-int2pair(I) -> int2pair(I, 0).
-int2pair(X, N) when X rem 2 == 0 ->
-    int2pair(X div 2, N+1);
-int2pair(X, N) ->
-    [N, X].
+%int2pair(I) -> int2pair(I, 0).
+%int2pair(0, N) -> [N, 0];
+%int2pair(X, N) when X rem 2 == 0 ->
+%    int2pair(X div 2, N+1);
+%int2pair(X, N) ->
+%    [N, X].
 sci2int(X) ->
     pair2int(sci2pair(X)).
 int2sci(X) ->
-    pair2sci(int2pair(X)).
+    Y = int2pair(X),
+    pair2sci(Y).
     
-recalculate(OldD, Ratio) ->
+recalculate(OldD, Top, Bottom) ->
     %difficulty is usually stored in scientific notation, so when I calculate the new difficulty, I have to transform to integer, do calculation, and then transform back to scientific notation.
     Old = sci2int(OldD),
-    New = fractions:multiply_int(Ratio, Old),
-    int2sci(New).
+    New = Old * Top div Bottom,
+    D = int2sci(New),
+    D.
     
 test() ->
     
