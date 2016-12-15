@@ -1,5 +1,5 @@
 -module(pow).
--export([data/1,pow/3,above_min/2,recalculate/2,test/0]).
+-export([data/1,pow/3,above_min/2,recalculate/2,sci2int/1,int2sci/1,test/0]).
 -record(pow, {data, difficulty = [0,0], nonce}).
 data(P) -> P#pow.data.
 above_min(P, Min) ->
@@ -57,12 +57,16 @@ int2pair(X, N) when X rem 2 == 0 ->
     int2pair(X div 2, N+1);
 int2pair(X, N) ->
     [N, X].
+sci2int(X) ->
+    pair2int(sci2pair(X)).
+int2sci(X) ->
+    pair2sci(int2pair(X)).
     
 recalculate(OldD, Ratio) ->
     %difficulty is usually stored in scientific notation, so when I calculate the new difficulty, I have to transform to integer, do calculation, and then transform back to scientific notation.
-    Old = pair2int(sci2pair(OldD)),
+    Old = sci2int(OldD),
     New = fractions:multiply_int(Ratio, Old),
-    pair2sci(int2pair(New)).
+    int2sci(New).
     
 test() ->
     
