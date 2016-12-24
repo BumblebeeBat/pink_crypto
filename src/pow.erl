@@ -1,5 +1,5 @@
 -module(pow).
--export([data/1,pow/3,above_min/2,recalculate/3,sci2int/1,int2sci/1,sci2pair/1,pair2sci/1,int2pair/1,pair2int/1,test/0]).
+-export([data/1,pow/3,above_min/2,recalculate/3,sci2int/1,int2sci/1,test/0]).
 -record(pow, {data, difficulty = [0,0], nonce}).
 data(P) -> P#pow.data.
 above_min(P, Min) ->
