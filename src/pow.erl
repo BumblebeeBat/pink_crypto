@@ -17,8 +17,9 @@ check_pow(P) ->
 pow(Data, Difficulty, Times) ->
     %bitcoin is 1,500,000 terahashes per second or 900,000,000,000,000,000,000 hashes per 10 minutes
     %in 10 years, bitcoin will find a collision of 88.6 bits. 
-    T = math:pow(10,23),
-    R = round(random:uniform() * T),
+    R = crypto:rand_uniform(0, 1000000000000000000000000),
+    %T = math:pow(10,23),
+    %R = round(random:uniform() * T),
     pow2(Data, Difficulty, R, Times).
 pow2(Data, Difficulty, Nonce, Times) ->
     P = #pow{data = Data, difficulty = Difficulty, nonce = Nonce},
