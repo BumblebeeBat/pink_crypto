@@ -6,6 +6,7 @@ params() -> crypto:ec_curve(secp256k1).
 shared_secret(Pub, Priv) -> en(crypto:compute_key(ecdh, de(Pub), de(Priv), params())).
 new_key() -> 
     {Pub, Priv} = crypto:generate_key(ecdh, params()),
+    %crypto:generate_key(ecdh, crypto:ec_curve(secp256k1)) 
     {en(Pub), en(Priv)}.
 new_key(P) ->
     {Pub, Priv} = crypto:generate_key(ecdh, params(), de(P)),

@@ -1,6 +1,9 @@
 -module(pow).
--export([data/1,pow/3,above_min/2,recalculate/3,sci2int/1,int2sci/1,test/0]).
--record(pow, {data, difficulty = [0,0], nonce}).
+-export([data/1,pow/3,above_min/2,recalculate/3,
+	 sci2int/1,int2sci/1,nonce/1,
+	 test/0]).
+-record(pow, {data, difficulty = [0,0], nonce}).%difficulty probably shouldn't default to a list, since it is usually an integer.
+nonce(P) -> P#pow.nonce.
 data(P) -> P#pow.data.
 above_min(P, Min) ->
     true = check_pow(P),
