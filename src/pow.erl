@@ -1,36 +1,36 @@
 -module(pow).
--export([data/1,pow/3,above_min/2,recalculate/3,
+-export([data/1,pow/4,above_min/3,recalculate/3,
 	 sci2int/1,int2sci/1,nonce/1,
 	 test/0]).
 -record(pow, {data, difficulty = [0,0], nonce}).%difficulty probably shouldn't default to a list, since it is usually an integer.
 nonce(P) -> P#pow.nonce.
 data(P) -> P#pow.data.
-above_min(P, Min) ->
-    true = check_pow(P),
+above_min(P, Min, HashSize) ->
+    true = check_pow(P, HashSize),
     Diff = P#pow.difficulty,
     Diff >= Min.
-check_pow(P) ->
+check_pow(P, HashSize) ->
     N = P#pow.nonce,
     Diff = P#pow.difficulty,
     Data = P#pow.data,
-    H1 = hash:doit(Data),
-    H2 = hash:doit(<<H1/binary, Diff:16, N:80>>),
+    H1 = hash:doit(Data, HashSize),
+    H2 = hash:doit(<<H1/binary, Diff:16, N:80>>, HashSize),
     I = hash2integer(H2),
     I > Diff.
-pow(Data, Difficulty, Times) ->
+pow(Data, Difficulty, Times, HashSize) ->
     %bitcoin is 1,500,000 terahashes per second or 900,000,000,000,000,000,000 hashes per 10 minutes
     %in 10 years, bitcoin will find a collision of 88.6 bits. 
     R = crypto:rand_uniform(0, 1000000000000000000000000),
     %T = math:pow(10,23),
     %R = round(random:uniform() * T),
-    pow2(Data, Difficulty, R, Times).
-pow2(Data, Difficulty, Nonce, Times) ->
+    pow2(Data, Difficulty, R, Times, HashSize).
+pow2(Data, Difficulty, Nonce, Times, HashSize) ->
     P = #pow{data = Data, difficulty = Difficulty, nonce = Nonce},
-    B = check_pow(P),
+    B = check_pow(P, HashSize),
     if
 	Times < 1 -> false;
 	B -> P;
-	true -> pow2(Data, Difficulty, Nonce+1, Times-1)
+	true -> pow2(Data, Difficulty, Nonce+1, Times-1, HashSize)
     end.
 hash2integer(H) -> hash2integer(<<H/binary, 255:8>>, 0).
 hash2integer(<<0:128, T/bitstring>>, X) -> hash2integer(T, X+128);
@@ -88,7 +88,7 @@ recalculate(OldD, Top, Bottom) ->
     D.
     
 test() ->
-    
+    HashSize = 12,
     Data = <<5,2,6,0,10>>,
     D = 16,
     D2 = 5,
@@ -97,12 +97,12 @@ test() ->
     Difficulty = pair2sci([D,D2]),
     %scientific notation, means we did about (2^(D-2))*(D2) hashes
     SearchTimes = round(math:pow(2, D)),
-    case pow(Data, Difficulty, SearchTimes) of
+    case pow(Data, Difficulty, SearchTimes, HashSize) of
 	false -> io:fwrite("failed to find a block quick enough\n");
 	P ->
 	    io:fwrite("found a block\n"),
-	    true = above_min(P, Difficulty),
-	    false = above_min(P, Difficulty+1),
-	    true = check_pow(P),
+	    true = above_min(P, Difficulty, HashSize),
+	    false = above_min(P, Difficulty+1, HashSize),
+	    true = check_pow(P, HashSize),
 	    P
     end.
