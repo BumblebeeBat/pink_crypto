@@ -23,7 +23,8 @@ pow(Data, Difficulty, Times, HashSize) ->
     R = crypto:rand_uniform(0, 1000000000000000000000000),
     %T = math:pow(10,23),
     %R = round(random:uniform() * T),
-    pow2(Data, Difficulty, R, Times, HashSize).
+    D = hash:doit(Data, HashSize),
+    pow2(D, Difficulty, R, Times, HashSize).
 pow2(Data, Difficulty, Nonce, Times, HashSize) ->
     P = #pow{data = Data, difficulty = Difficulty, nonce = Nonce},
     B = check_pow(P, HashSize),
