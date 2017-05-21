@@ -27,7 +27,7 @@ send_msg(M, ToPub, FromPub, FromPriv) ->
 get_msg(Msg, Priv) ->
     Sig = sym_dec(sign:shared_secret(Msg#emsg.key, Priv), base64:decode(Msg#emsg.msg)),
     true = sign:verify_sig(Msg#emsg.key, Sig#msg.sig, Sig#msg.id),
-    Sig#msg.msg.
+    Sig.
 %This version can be used over and over to encrypt data with the same secret.
 to_priv(X) ->
     base64:encode(crypto:hash(sha256, X)).
@@ -40,7 +40,7 @@ encrypt(File, Secret) ->
     term_to_binary(send_msg(File, Pub, TempPub, TempPriv)).
 decrypt(Encrypted, Secret) ->
     Priv = to_priv(Secret),
-    (get_msg(binary_to_term(Encrypted), Priv)).
+    (get_msg(binary_to_term(Encrypted), Priv))#msg.msg.
     
 test() ->
     {Pub, Priv} = sign:new_key(),
@@ -50,8 +50,8 @@ test() ->
     true = bin_dec("abc", bin_enc("abc", Val)) == Val,
     true = bin_dec("abc", bin_enc("abc", Binary)) == Binary,
     Record = {f, Binary},
-    Record = get_msg(send_msg(Record, Pub2, Pub, Priv), Priv2),
-    %true = Sig#msg.msg == Record,
+    Sig = get_msg(send_msg(Record, Pub2, Pub, Priv), Priv2),
+    true = Sig#msg.msg == Record,
     Secret = <<1,5,3,7,4>>,
     Record = decrypt(encrypt(Record, Secret), Secret), 
     
