@@ -83,9 +83,9 @@ int2sci(X) ->
 recalculate(OldD, Top, Bottom) ->
     %difficulty is usually stored in scientific notation, so when I calculate the new difficulty, I have to transform to integer, do calculation, and then transform back to scientific notation.
     Old = sci2int(OldD),
-    New = Old * Top div Bottom,
+    New = max(1, Old * Top div Bottom),
     D = int2sci(New),
-    D.
+    max(1, D).
     
 test() ->
     HashSize = 12,

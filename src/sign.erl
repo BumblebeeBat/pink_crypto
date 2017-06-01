@@ -9,7 +9,7 @@ new_key() ->
     %crypto:generate_key(ecdh, crypto:ec_curve(secp256k1)) 
     {en(Pub), en(Priv)}.
 new_key(P) ->
-    {Pub, Priv} = crypto:generate_key(ecdh, params(), de(P)),
+   {Pub, Priv} = crypto:generate_key(ecdh, params(), de(P)),
     {en(Pub), en(Priv)}.
     
 sign(S, Priv) -> en(crypto:sign(ecdsa, sha256, term_to_binary(S), [de(Priv), params()])).

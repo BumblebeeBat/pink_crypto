@@ -11,7 +11,7 @@ else
 	(*Darwin*) curl https://raw.githubusercontent.com/wiki/rebar/rebar/rebar -o rebar ;  chmod u+x rebar; ;;
 	(*) echo 'error: unsupported platform.'; exit 2; ;;
     esac;
-    #$openCmd ;
+#use rebar to install other dependencies, explained in rebar.config
     ./rebar get
     ./rebar compile
 fi
