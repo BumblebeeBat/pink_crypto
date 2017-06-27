@@ -1,6 +1,8 @@
 -module(hash).
--export([doit/2, bin_to_hex/1]).
+-export([doit/1, doit/2, bin_to_hex/1]).
 
+doit(S) ->
+    doit(S, 32).
 doit(S, Size) when not(is_binary(S)) -> 
     doit(term_to_binary(S), Size);
 doit(S, Size) -> 
