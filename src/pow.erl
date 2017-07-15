@@ -1,6 +1,7 @@
 -module(pow).
 -export([data/1,pow/4,above_min/3,recalculate/3,
 	 sci2int/1,int2sci/1,nonce/1,check_pow/2,
+	 hash2int/1,
 	 test/0]).
 -record(pow, {data, difficulty = [0,0], nonce}).%difficulty probably shouldn't default to a list, since it is usually an integer.
 nonce(P) -> P#pow.nonce.
@@ -14,7 +15,8 @@ check_pow(P, HashSize) ->
     Diff = P#pow.difficulty,
     Data = P#pow.data,
     H1 = hash:doit(Data, HashSize),
-    H2 = hash:doit(<<H1/binary, Diff:16, N:80>>, HashSize),
+    X = HashSize*8,
+    H2 = hash:doit(<<H1/binary, Diff:16, N:X>>, HashSize),
     I = hash2integer(H2),
     I > Diff.
 pow(Data, Difficulty, Times, HashSize) ->
