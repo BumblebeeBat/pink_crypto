@@ -16,7 +16,11 @@ check_pow(P, HashSize) ->
     Data = P#pow.data,
     H1 = hash:doit(Data, HashSize),
     X = HashSize*8,
-    H2 = hash:doit(<<H1/binary, Diff:16, N:X>>, HashSize),
+    Y = <<H1/binary, Diff:16, N:X>>,
+    io:fwrite("pow check_pow "),
+    io:fwrite(base64:encode(Y)),
+    io:fwrite("\n"),
+    H2 = hash:doit(Y, HashSize),
     I = hash2integer(H2),
     I > Diff.
 pow(Data, Difficulty, Times, HashSize) ->

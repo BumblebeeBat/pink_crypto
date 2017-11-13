@@ -5,7 +5,8 @@
   {registered, []},
   {applications, [
                   kernel,
-                  stdlib
+                  stdlib,
+		  encrypter
                  ]},
   {mod, { pink_hash_app, []}},
   {env, []}
