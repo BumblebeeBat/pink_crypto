@@ -6,11 +6,7 @@
   {applications, [
                   kernel,
                   stdlib,
-<<<<<<< HEAD
 		  encrypter
-=======
-                  encrypter
->>>>>>> 4ca125df99113038c79e0d785349def1c3cb0825
                  ]},
   {mod, { pink_hash_app, []}},
   {env, []}
