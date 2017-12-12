@@ -3,14 +3,16 @@
 	 sci2int/1,int2sci/1,nonce/1,check_pow/2,
 	 hash2integer/1,
 	 test/0]).
--record(pow, {data, difficulty = [0,0], nonce}).%difficulty probably shouldn't default to a list, since it is usually an integer.
+-record(pow, {data, difficulty = 0, nonce}).
 nonce(P) -> P#pow.nonce.
 data(P) -> P#pow.data.
 above_min(P, Min, HashSize) ->
+    HashSize = 32,
     true = check_pow(P, HashSize),
     Diff = P#pow.difficulty,
     Diff >= Min.
 check_pow(P, HashSize) ->
+    HashSize = 32,
     N = P#pow.nonce,
     Diff = P#pow.difficulty,
     Data = P#pow.data,
@@ -21,9 +23,11 @@ check_pow(P, HashSize) ->
     I = hash2integer(H2),
     I > Diff.
 pow(Data, Difficulty, Times, HashSize) ->
+    HashSize = 32,
     %bitcoin is 1,500,000 terahashes per second or 900,000,000,000,000,000,000 hashes per 10 minutes
     %in 10 years, bitcoin will find a collision of 88.6 bits. 
-    R = crypto:rand_uniform(0, 1000000000000000000000000),
+    %R = crypto:rand_uniform(0, 1000000000000000000000000),
+    <<R:256>> = crypto:strong_rand_bytes(32),
     %T = math:pow(10,23),
     %R = round(random:uniform() * T),
     pow2(Data, Difficulty, R, Times, HashSize).
@@ -91,7 +95,7 @@ recalculate(OldD, Top, Bottom) ->
     max(1, D).
     
 test() ->
-    HashSize = 12,
+    HashSize = 32,
     Data = <<5,2,6,0,10>>,
     D = 16,
     D2 = 5,

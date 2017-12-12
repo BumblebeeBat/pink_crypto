@@ -6,9 +6,7 @@ It includes libraries for:
 
 * doing math over bitcoin's elliptic curve.
 
-* calculating a hash of erlang data structures.
-
-* doing proof of work on erlang data structures.
+* doing proof of work.
 
 * public/private cryptography.
 
