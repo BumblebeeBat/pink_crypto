@@ -11,17 +11,25 @@ above_min(P, Min, HashSize) ->
     true = check_pow(P, HashSize),
     Diff = P#pow.difficulty,
     Diff >= Min.
+mining_check(P, HashSize) ->
+    check_common(P, HashSize, mining).
 check_pow(P, HashSize) ->
+    check_common(P, HashSize, verifying).
+check_common(P, HashSize, Type) ->
     HashSize = 32,
     N = P#pow.nonce,
     Diff = P#pow.difficulty,
     Data = P#pow.data,
     H1 = hash:doit(Data, HashSize),
     X = HashSize*8,
-    Y = <<H1/binary, Diff:16, N:X>>,
+    Y = <<N:X, H1/binary>>,
     H2 = hash:doit(Y, HashSize),
-    I = hash2integer(H2),
+    I = case Type of
+	mining -> mining2integer(H2);
+	verifying -> hash2integer(H2)
+    end,
     I > Diff.
+    
 pow(Data, Difficulty, Times, HashSize) ->
     HashSize = 32,
     %bitcoin is 1,500,000 terahashes per second or 900,000,000,000,000,000,000 hashes per 10 minutes
@@ -33,13 +41,16 @@ pow(Data, Difficulty, Times, HashSize) ->
     pow2(Data, Difficulty, R, Times, HashSize).
 pow2(Data, Difficulty, Nonce, Times, HashSize) ->
     P = #pow{data = Data, difficulty = Difficulty, nonce = Nonce},
-    B = check_pow(P, HashSize),
+    B = mining_check(P, HashSize),
     if
 	Times < 1 -> false;
 	B -> P;
 	true -> pow2(Data, Difficulty, Nonce+1, Times-1, HashSize)
     end.
-hash2integer(H) -> hash2integer(<<H/binary, 255:8>>, 0).
+mining2integer(H) -> mining2integer(<<H/binary, 255:8>>, 0).%identical to hash2integer. optimized for mining.
+mining2integer(<<0:1, B/bitstring>>, X) -> mining2integer(B, X+1);
+mining2integer(<<1:1, B:8, _/bitstring>>, X) -> pair2sci([X, B]).
+hash2integer(H) -> hash2integer(<<H/binary, 255:8>>, 0).%optimized for verification, not mining.
 hash2integer(<<0:128, T/bitstring>>, X) -> hash2integer(T, X+128);
 hash2integer(<<0:64, T/bitstring>>, X) -> hash2integer(T, X+64);
 hash2integer(<<0:32, T/bitstring>>, X) -> hash2integer(T, X+32);
@@ -48,15 +59,13 @@ hash2integer(<<0:8, T/bitstring>>, X) -> hash2integer(T, X+8);
 hash2integer(<<0:4, T/bitstring>>, X) -> hash2integer(T, X+4);
 hash2integer(<<0:2, T/bitstring>>, X) -> hash2integer(T, X+2);
 hash2integer(<<0:1, T/bitstring>>, X) -> hash2integer(T, X+1);
-hash2integer(<<B:8, _/bitstring>>, X) -> pair2sci([X, B]).
+hash2integer(<<1:1, B:8, _/bitstring>>, X) -> pair2sci([X, B]).
 exponent(_, 0) -> 1;
 exponent(A, 1) -> A;
 exponent(A, N) when N rem 2 == 0 -> 
     exponent(A*A, N div 2);
-exponent(A, N) -> 
-    A*exponent(A, N-1).
-pair2sci([A, B]) ->
-    256*A+B.
+exponent(A, N) -> A*exponent(A, N-1).
+pair2sci([A, B]) -> 256*A+B.
 
 pair2int([A, B]) ->
     exponent(2, A) * (256+B) div 256.
@@ -95,8 +104,15 @@ recalculate(OldD, Top, Bottom) ->
     max(1, D).
     
 test() ->
-    HashSize = 32,
     Data = <<5,2,6,0,10>>,
+    Hash = hash:doit(Data, 32),
+    io:fwrite(integer_to_list(hash2integer(Hash))),
+    io:fwrite("\n"),
+    io:fwrite(integer_to_list(mining2integer(Hash))),
+    io:fwrite("\n"),
+    true = hash2integer(Hash) == mining2integer(Hash),
+
+    HashSize = 32,
     D = 16,
     D2 = 5,
     [D, D2] = sci2pair(pair2sci([D, D2])),
@@ -111,8 +127,10 @@ test() ->
 	    true = above_min(P, Difficulty, HashSize),
 	    false = above_min(P, Difficulty+1, HashSize),
 	    true = check_pow(P, HashSize),
+	    true = mining_check(P, HashSize),
 	    P
-    end.
+    end,
+    success.
 test2() ->
 %0x000102FFFFFFFFFFFFFFFFFFFFFFFFFF
     A = <<0, 1, 2, 255, 255, 255, 255, 255>>,
