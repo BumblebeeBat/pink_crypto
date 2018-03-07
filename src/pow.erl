@@ -22,7 +22,7 @@ check_common(P, HashSize, Type) ->
     Data = P#pow.data,
     H1 = hash:doit(Data, HashSize),
     X = HashSize*8,
-    Y = <<N:X, H1/binary>>,
+    Y = <<N:X, H1/binary>>,%32 bytes of nonce followed by 32 bytes of the hash of the header.
     H2 = hash:doit(Y, HashSize),
     I = case Type of
 	mining -> mining2integer(H2);
