@@ -1,9 +1,10 @@
 -module(pow).
 -export([data/1,pow/4,above_min/3,recalculate/3,
 	 sci2int/1,int2sci/1,nonce/1,check_pow/3,
-	 hash2integer/2,
+	 hash2integer/2, branch/0,
 	 test/0, test2/0]).
 -record(pow, {data, difficulty = 0, nonce}).
+branch() -> 2.
 nonce(P) -> P#pow.nonce.
 data(P) -> P#pow.data.
 above_min(P, Min, Fork) ->
@@ -41,7 +42,7 @@ pow(Data, Difficulty, Times, Fork) ->
     %bitcoin is 1,500,000 terahashes per second or 900,000,000,000,000,000,000 hashes per 10 minutes
     %in 10 years, bitcoin will find a collision of 88.6 bits. 
     %R = crypto:rand_uniform(0, 1000000000000000000000000),
-    <<R:256>> = crypto:strong_rand_bytes(23),
+    <<R:184>> = crypto:strong_rand_bytes(23),
     %T = math:pow(10,23),
     %R = round(random:uniform() * T),
     pow2(Data, Difficulty, R, Times, HashSize, Fork).
