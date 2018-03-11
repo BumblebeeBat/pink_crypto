@@ -21,10 +21,13 @@ check_common(P, HashSize, Fork, Type) ->
     Diff = P#pow.difficulty,
     Data = P#pow.data,
     H1 = hash:doit(Data, HashSize),
-    X = HashSize*8, 
     Y = case Fork of
-	    0 -> <<H1/binary, Diff:16, N:X>>;
-	    1 -> <<N:X, H1/binary>>%32 bytes of nonce followed by 32 bytes of the hash of the header.
+	    0 -> 
+		X = HashSize*8, 
+		<<H1/binary, Diff:16, N:X>>;
+	    1 -> 
+		X = 23 * 8,
+		<<H1/binary, N:X>>%32 bytes of hash of header followed by 23 bytes of nonce.
 	end,
     H2 = hash:doit(Y, HashSize),
     I = case Type of
@@ -38,7 +41,7 @@ pow(Data, Difficulty, Times, Fork) ->
     %bitcoin is 1,500,000 terahashes per second or 900,000,000,000,000,000,000 hashes per 10 minutes
     %in 10 years, bitcoin will find a collision of 88.6 bits. 
     %R = crypto:rand_uniform(0, 1000000000000000000000000),
-    <<R:256>> = crypto:strong_rand_bytes(32),
+    <<R:256>> = crypto:strong_rand_bytes(23),
     %T = math:pow(10,23),
     %R = round(random:uniform() * T),
     pow2(Data, Difficulty, R, Times, HashSize, Fork).
