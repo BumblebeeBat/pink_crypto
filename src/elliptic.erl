@@ -1,5 +1,6 @@
 -module(elliptic).
--export([test/0, add/2, make_point/2, multiply/2, hex2int/1]).
+-export([test/0, test2/0,
+add/2, make_point/2, multiply/2, hex2int/1, base/0, random_int/0]).
 
 %Y^2 = X^3 + 7.
 
@@ -33,7 +34,7 @@
 		     y = 32670510020758816978083085130507043184471273380659243275938904335757337482424}).
 -define(p, 115792089237316195423570985008687907853269984665640564039457584007908834671663).
 -define(n, 115792089237316195423570985008687907852837564279074904382605163141518161494337).
-
+base() -> ?Base.
 hex2int(N) -> hex2int(N, 0).
 hex2int([], N) -> N;
 hex2int([H|T], N) -> 
@@ -78,6 +79,14 @@ powrem(A, B) -> A*powrem(A, B-1) rem ?p.
 inverse(A) ->
     powrem(A, ?p-2).
 
+
+-define(Base2, {point,71512103163200868719313266481290892478515614256198246112525499383908891547715,
+       65334305839683166714752726047646676124964098163470154901472866527750635165535}).
+
+pedersen(M, R) ->
+    add(multiply(?Base, R), multiply(?Base2, M)).
+
+
 test() ->
     One = inverse(5) * 5 rem ?p,
     One = 1,
@@ -108,5 +117,17 @@ test() ->
     Four = multiply(?Base, 4),
     Base = ?Base,
     Base = multiply(?Base, ?n+1),
-    Base = multiply(?Base, (?n+1)*(?n+1)).
+    Base = multiply(?Base, (?n+1)*(?n+1)),
+    test2().
+random_int() ->
+    <<Random:528>> = crypto:strong_rand_bytes(66),
+    Random rem ?p.
+    
+test2() ->
+    R = random_int(),
+    R2 = random_int(),
+    A = pedersen(5, R),
+    B = pedersen(5, R2),
+    C = pedersen(10, (R + R2)),
+    C = add(A, B).
  
