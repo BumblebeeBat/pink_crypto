@@ -146,7 +146,7 @@ test2() ->
     test3().
 test3() -> 
     %this tests that pedersen commits can be merged into other valid pedersen commits.
-    R = random_in(),
+    R = random_int(),
     R2 = random_int(),
     A = pedersen(5, R),
     B = pedersen(5, R2),
@@ -180,5 +180,3 @@ test4() ->
     %the sum of the 2 new commitments is equal to the value of the old commit.
     success.
      
-    
-    
