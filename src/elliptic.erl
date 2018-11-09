@@ -162,7 +162,7 @@ test3() ->
     %G.
  
 test4() ->
-    %this checks that pedersen commitments can be merged, even if the blinding factor is so big that
+    %this checks that pedersen commitments can be merged, even if the sum of blinding factors is bigger than the order of the group.
     Q = pedersen(1, 1),
     Q2 = pedersen(1, ?n+1),
     Q3 = pedersen(2, ?n + 2),
