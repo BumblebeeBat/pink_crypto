@@ -153,29 +153,22 @@ test3() ->
     %G.
  
 test4() ->
-    Q = pedersen(1, 101),
-    Q2 = pedersen(1, ?p - 100),
-    Q3 = pedersen(2, 1),
+    Q = pedersen(1, 1),
+    Q2 = pedersen(1, ?n+1 ),
+    Q3 = pedersen(2, ?n + 2),
     Q3 = add(Q,Q2),
+    Q = Q2,
 
     R = random_int(),
     R2 = random_int(),
-    R3 = random_int(),
     DB = dict:new(),
     A = pedersen(100, R),
     %alice has a account with 100, she wants to send 50 to bob's new account.
-    %A2 = pedersen(50, (R - R2 + ?p) rem ?p),
-    if
-	R2 > R ->
-	    io:fwrite("broken\n"),
-	    B2 = pedersen(50, R - R2),
-	    B = pedersen(50, R2),
-	    [add(B, B2), A];
-	true ->
-	    B2 = pedersen(50, R - R2),
-	    B = pedersen(50, R2),
-	    [add(B, B2), A]
-    end.
+    B2 = pedersen(50, (R - R2 + ?n) rem ?n),
+    B = pedersen(50, R2),
+    A = add(B, B2),
+    %the sum of the 2 new commitments is equal to the sum of the 2 new commitments.
+    success.
      
     
     
