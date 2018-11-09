@@ -1,5 +1,6 @@
 -module(elliptic).
--export([test/0, test2/0,
+-export([test/0, test2/0,test4/0,
+pedersen/2,
 add/2, make_point/2, multiply/2, hex2int/1, base/0, random_int/0]).
 
 %Y^2 = X^3 + 7.
@@ -47,6 +48,12 @@ hex2int([H|T], N) ->
 make_point(A, B) ->
     #point{x = A, y = B}.
 
+multiply(X, N) when N < 0 -> 
+    io:fwrite("mul flip\n"),
+    %1=2,
+    %N2 = ?p + N,
+    %N2 = inverse(-N),
+    multiply(X, N + ?p);
 multiply(X, 1) -> X;
 multiply(P, N) when (N rem 2) == 0 ->
     multiply(add(P, P), N div 2);
@@ -120,14 +127,55 @@ test() ->
     Base = multiply(?Base, (?n+1)*(?n+1)),
     test2().
 random_int() ->
-    <<Random:528>> = crypto:strong_rand_bytes(66),
+    <<Random:264>> = crypto:strong_rand_bytes(33),
     Random rem ?p.
     
 test2() ->
+    Zero = add(?Base, multiply(?Base, -1)),
+    Zero = add(multiply(?Base, 2), multiply(?Base, -2)),
+    None = add(multiply(?Base, 2), multiply(?Base, -3)),
+    None = add(multiply(?Base, 3), multiply(?Base, -4)),
+    test3().
+test3() -> 
     R = random_int(),
     R2 = random_int(),
     A = pedersen(5, R),
     B = pedersen(5, R2),
     C = pedersen(10, (R + R2)),
-    C = add(A, B).
+    C = add(A, B),
+    D = pedersen(5, 101),
+    E = pedersen(6, 1000),
+    F = pedersen(11, 1101),
+    G = add(D, E),
+    %io:fwrite(F, G).
+    G = F,
+    test4().
+    %G.
  
+test4() ->
+    Q = pedersen(1, 101),
+    Q2 = pedersen(1, ?p - 100),
+    Q3 = pedersen(2, 1),
+    Q3 = add(Q,Q2),
+
+    R = random_int(),
+    R2 = random_int(),
+    R3 = random_int(),
+    DB = dict:new(),
+    A = pedersen(100, R),
+    %alice has a account with 100, she wants to send 50 to bob's new account.
+    %A2 = pedersen(50, (R - R2 + ?p) rem ?p),
+    if
+	R2 > R ->
+	    io:fwrite("broken\n"),
+	    B2 = pedersen(50, R - R2),
+	    B = pedersen(50, R2),
+	    [add(B, B2), A];
+	true ->
+	    B2 = pedersen(50, R - R2),
+	    B = pedersen(50, R2),
+	    [add(B, B2), A]
+    end.
+     
+    
+    
