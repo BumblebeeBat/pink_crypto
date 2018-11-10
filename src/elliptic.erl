@@ -155,8 +155,8 @@ test() ->
     Three = multiply(?Base, 3),
     Four = multiply(?Base, 4),
     Base = ?Base,
-    %Base = multiply(?Base, ?n+1),
-    %Base = multiply(?Base, (?n+1)*(?n+1)),
+    Base = multiply(?Base, ?n+1),
+    Base = multiply(?Base, (?n+1)*(?n+1)),
     test2().
     
 test2() ->
