@@ -2,6 +2,7 @@
 -export([test/0, test2/0, test4/0, 
 	 hex2int/1, base/0, random_int/0,
 	 add/2, make_point/2, multiply/2, 
+	 inverse/1, inverse_old/1,
 	 pedersen/2]).
 
 %Y^2 = X^3 + 7.
@@ -40,19 +41,24 @@
 make_point(A, B) ->
     #point{x = A, y = B}.
 remm(A) -> (((A rem ?p) + ?p) rem ?p).
-%pow/1 is just example code so that powrem/2 will be more easily understood.
-pow(_, 0) -> 1;
-pow(A, 1) -> A;
-pow(A, B) when (B rem 2) == 0 ->
-    pow(A*A, B div 2);
-pow(A, B) -> A*pow(A, B-1).
-powrem(_, 0) -> 1;
-powrem(A, 1) -> A rem ?p;
-powrem(A, B) when (B rem 2) == 0 -> 
-    powrem(A*A rem ?p, B div 2);
-powrem(A, B) -> A*powrem(A, B-1) rem ?p.
 inverse(A) ->
-    powrem(A, ?p-2).
+    %https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm
+    if
+	A<0 -> inverse(A+?p);
+	true -> inverse2b(A, 0, 1, ?p, A)
+    end.
+inverse2b(A, T, NT, R, NR) ->
+    if
+	(not (NR == 0)) ->
+	    Quotient = R div NR,
+	    inverse2b(A, NT, T - (Quotient * NT), NR, R - (Quotient * NR));
+	R > 1 -> io:fwrite("not invertible.");
+	true ->
+	    if
+		T < 0 -> T + ?p;
+		true -> T
+	    end
+    end.
 add(P, Q) ->
     L0 = if
 	    (P#point.x == Q#point.x) and
@@ -70,6 +76,7 @@ add(P, Q) ->
 
 
 %log2(n) multiplication to make pedersen commitments fast
+multiply(X, 0) -> 1=2;
 multiply(X, N) when N < 0 -> 
     multiply(X, N + ?p);
 multiply(X, 1) -> X;
@@ -103,7 +110,22 @@ hex2int([H|T], N) ->
 	end,
     N2 = (N*16) + A,
     hex2int(T, N2).
+%pow/2 is just example code so that powrem/2 will be more easily understood.
+pow(_, 0) -> 1;
+pow(A, 1) -> A;
+pow(A, B) when (B rem 2) == 0 ->
+    pow(A*A, B div 2);
+pow(A, B) -> A*pow(A, B-1).
+%powrem/2 is a helper function so we can calculate inverses.
+powrem(_, 0) -> 1;
+powrem(A, 1) -> A rem ?p;
+powrem(A, B) when (B rem 2) == 0 -> 
+    powrem(A*A rem ?p, B div 2);
+powrem(A, B) -> A*powrem(A, B-1) rem ?p.
+%this inverse algorithm is easier to calculate, but slower. We can use it to test the accuracy of the other inverse algorithm.
+inverse_old(A) -> powrem(A, ?p-2).
 test() ->
+    io:fwrite("test 1\n"),
     %tests the elliptic curve field is working as expected.
     One = inverse(5) * 5 rem ?p,
     One = 1,
@@ -133,12 +155,13 @@ test() ->
     Three = multiply(?Base, 3),
     Four = multiply(?Base, 4),
     Base = ?Base,
-    Base = multiply(?Base, ?n+1),
-    Base = multiply(?Base, (?n+1)*(?n+1)),
+    %Base = multiply(?Base, ?n+1),
+    %Base = multiply(?Base, (?n+1)*(?n+1)),
     test2().
     
 test2() ->
     %this tests more aspects of the elliptic curve field.
+    io:fwrite("test 2\n"),
     Zero = add(?Base, multiply(?Base, -1)),
     Zero = add(multiply(?Base, 2), multiply(?Base, -2)),
     NegativeOne = add(multiply(?Base, 2), multiply(?Base, -3)),
@@ -146,6 +169,7 @@ test2() ->
     test3().
 test3() -> 
     %this tests that pedersen commits can be merged into other valid pedersen commits.
+    io:fwrite("test 3\n"),
     R = random_int(),
     R2 = random_int(),
     A = pedersen(5, R),
@@ -163,6 +187,7 @@ test3() ->
  
 test4() ->
     %this checks that pedersen commitments can be merged, even if the sum of blinding factors is bigger than the order of the group.
+    io:fwrite("test 4\n"),
     Q = pedersen(1, 1),
     Q2 = pedersen(1, ?n+1),
     Q3 = pedersen(2, ?n + 2),
