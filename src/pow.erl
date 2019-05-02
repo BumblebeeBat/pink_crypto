@@ -2,7 +2,7 @@
 -export([data/1,pow/4,above_min/3,recalculate/3,
 	 sci2int/1,int2sci/1,nonce/1,check_pow/2,
 	 hash2integer/1,
-	 test/0]).
+	 test/0, test2/0]).
 -record(pow, {data, difficulty = 0, nonce}).
 nonce(P) -> P#pow.nonce.
 data(P) -> P#pow.data.
@@ -113,3 +113,11 @@ test() ->
 	    true = check_pow(P, HashSize),
 	    P
     end.
+test2() ->
+%0x000102FFFFFFFFFFFFFFFFFFFFFFFFFF
+    A = <<0, 1, 2, 255, 255, 255, 255, 255>>,
+%0x007FFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+    B = <<0, 111, 255, 255, 255, 255, 255>>,
+    [hash2integer(A),
+     hash2integer(B)] == [3969,2527].%returns true.
+	       
