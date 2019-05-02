@@ -1,5 +1,7 @@
 -module(elliptic).
--export([test/0, add/2, make_point/2, multiply/2, hex2int/1]).
+-export([add/2, make_point/2, multiply/2, hex2int/1, modsqrt/1, powrem/2,
+         compress_pub/1, decompress_pub/1,
+        test/0, test2/0, test3/0]).
 
 %Y^2 = X^3 + 7.
 
@@ -78,7 +80,60 @@ powrem(A, B) -> A*powrem(A, B-1) rem ?p.
 inverse(A) ->
     powrem(A, ?p-2).
 
+amoveo_pub2point(Pub) ->
+    Bpub = base64:decode(Pub),
+    S = 32 * 8,
+    <<4:8, X:S, Y:S>> = Bpub,
+    #point{x = X, y = Y}.
+point2amoveo_pub(P) ->
+    X = P#point.x,
+    Y = P#point.y,
+    S = 32 * 8,
+    base64:encode(<<4:8, X:S, Y:S>>).
+   
+compress_pub(Pub) -> 
+    P = amoveo_pub2point(Pub),
+    X = P#point.x,
+    Y = P#point.y,
+    S = Y rem 2,
+    B = case S of
+            1 -> 3;
+            0 -> 2
+        end,
+    Z = 32 * 8,
+    base64:encode(<<B:8, X:Z>>).
+modsqrt(A) ->
+    powrem(A, ((?p+1) div 4)).
+    
+decompress_pub(Pub) ->
+    S = 32 * 8,
+    <<B:8, X:S>> = base64:decode(Pub),
+    %Y^2 = X^3 + 7
+    Y2 = ((((X*X rem ?p) * X) + 7) rem ?p),
+    Y = modsqrt(Y2),
+    Bool = ((B-2) == (Y rem 2)),
+    YY = if
+             Bool -> Y;
+             true -> (?p - Y) rem ?p
+         end,
+    P = #point{x = X, y = YY},
+    point2amoveo_pub(P).
+    
 test() ->
+    %test compression.
+    {Pub, _} = sign:new_key(),
+    Cpub = compress_pub(Pub),
+    Pub = decompress_pub(Cpub),
+    {Pub, Cpub}.
+
+test3() ->
+    %test conversion to point format.
+    {Pub, _} = sign:new_key(),
+    P = amoveo_pub2point(Pub),
+    Pub = point2amoveo_pub(P).
+
+test2() ->
+    %test secp256k1 arithmetic
     One = inverse(5) * 5 rem ?p,
     One = 1,
     N = hex2int("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141"),
